@@ -141,7 +141,7 @@ const TravelEntryForm = ({ onSubmit }) => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="agency">Travel Agency:</label>
+          <label htmlFor="agency">Travels:</label>
           <select
             name="agency"
             value={formData.agency}
@@ -166,7 +166,6 @@ const TravelEntryForm = ({ onSubmit }) => {
             name="vehicleName"
             value={formData.vehicleName}
             onChange={handleChange}
-            placeholder="Enter vehicle name"
             className="input-field"
           />
         </div>
@@ -177,7 +176,6 @@ const TravelEntryForm = ({ onSubmit }) => {
             name="vehicleNumber"
             value={formData.vehicleNumber}
             onChange={handleChange}
-            placeholder="Enter vehicle number"
             className="input-field"
           />
         </div>
@@ -188,7 +186,6 @@ const TravelEntryForm = ({ onSubmit }) => {
             name="driverName"
             value={formData.driverName}
             onChange={handleChange}
-            placeholder="Enter driver name"
             className="input-field"
           />
         </div>

@@ -25,12 +25,12 @@
 }
 
 .motto {
-  font-weight: 500;
+  font-weight: 550;
   font-size: 1.4em;
   line-height: 10%;
   transition: 700ms ease;
   text-align: center;
-  color: #FFC100;
+  color: #6439FF;
   letter-spacing: .5px;
 }
 

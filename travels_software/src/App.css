@@ -1,0 +1,40 @@
+
+.App {
+  text-align: center;
+}
+
+form {
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 10px;
+}
+
+input,
+select,
+button {
+  margin-top: 5px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+button {
+  margin-top: 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+button:hover {
+  background-color: #218838;
+}
+  

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import TravelEntryForm from "./components/TravelEntryForm";
-import LoginForm from "./components/LoginForm"; // Ensure this import is correct
+import LoginForm from "./components/LoginForm";
 import './components/TravelEntryForm.css';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Handle form submission
+  // Handle form submission for TravelEntryForm
   const handleFormSubmit = (data) => {
     console.log("Form Submitted:", data);
     // You can add your API call here

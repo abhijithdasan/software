@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import './LoginForm.css'; // Ensure this file is correctly imported
+import './LoginForm.css';
 
 const LoginForm = ({ onSubmit }) => {
   const [username, setUsername] = useState("");
@@ -16,10 +16,22 @@ const LoginForm = ({ onSubmit }) => {
       return;
     }
 
+    // Debugging output
+    console.log('Entered Username:', username);
+    console.log('Entered Password:', password);
+    console.log('Expected Username:', import.meta.env.VITE_USERNAME);
+    console.log('Expected Password:', import.meta.env.VITE_PASSWORD);
+
+    // Check credentials against environment variables
+    if (username !== import.meta.env.VITE_USERNAME || password !== import.meta.env.VITE_PASSWORD) {
+      setError("Invalid username or password.");
+      return;
+    }
+
     setError(""); // Clear any previous error
 
     // Call the onSubmit function passed as a prop
-    onSubmit({ username, password });
+    onSubmit(true); // Update login status to true
 
     // Clear the form fields after submission
     setUsername("");

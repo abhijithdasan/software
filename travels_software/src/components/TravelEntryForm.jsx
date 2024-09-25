@@ -329,22 +329,16 @@ const TravelEntryForm = ({ onSubmit }) => {
       </div>
 
       {/* Row 7: Purpose */}
-      <div className="form-row">
-        
-      </div>
-      <button
-        type="submit"
-        style={{
-          padding: "0.75rem 1.5rem",
-          backgroundColor: "#97BE5A",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
-      >
+      <div className="form-row btn">
+       <button className="submit-btn" type="submit">
         Submit
       </button>
+
+      <button className="print-btn" type="print">
+        Print
+      </button> 
+      </div>
+      
       
     </form>
   );

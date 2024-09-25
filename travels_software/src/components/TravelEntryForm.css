@@ -82,10 +82,23 @@
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
-.submit-button,
-.search-button {
+
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding: 0.8rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.submit-btn,
+.print-btn {
   background-color: #007bff;
   color: #fff;
+  justify-content: center;
   border: none;
   border-radius: 6px;
   padding: 0.8rem 1.2rem;
@@ -95,15 +108,15 @@
   transition: background-color 0.3s;
 }
 
-.submit-button:hover {
+.submit-btn:hover {
   background-color: #0056b3;
 }
 
-.search-button {
+.print-btn {
   background-color: #4caf50;
 }
 
-.search-button:hover {
+.print-btn:hover {
   background-color: #388e3c;
 }
 

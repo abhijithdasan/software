@@ -339,7 +339,7 @@ const TravelEntryForm = ({ onSubmit }) => {
         type="submit"
         style={{
           padding: "0.75rem 1.5rem",
-          backgroundColor: "#4CAF50",
+          backgroundColor: "#97BE5A",
           color: "white",
           border: "none",
           borderRadius: "4px",

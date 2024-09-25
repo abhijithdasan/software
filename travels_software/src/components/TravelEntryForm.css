@@ -14,7 +14,7 @@
   transition: 700ms ease;
   font-variation-settings: "wght" 311;
   margin-bottom: 0rem;
-  color: rgb(247, 234, 95);
+  color: #FF0000;
   outline: none;
   text-align: center;
 }
@@ -30,7 +30,7 @@
   line-height: 10%;
   transition: 700ms ease;
   text-align: center;
-  color: rgb(242, 10, 188);
+  color: #FFC100;
   letter-spacing: .5px;
 }
 

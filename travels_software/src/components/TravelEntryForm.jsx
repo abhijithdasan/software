@@ -108,6 +108,10 @@ const TravelEntryForm = ({ onSubmit }) => {
     });
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   const generateInvoiceNumber = () => {
     return `INV-${Math.floor(Math.random() * 1000000)}`;
   };
@@ -167,6 +171,8 @@ const TravelEntryForm = ({ onSubmit }) => {
             value={formData.vehicleName}
             onChange={handleChange}
             className="input-field"
+            required
+            style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
           />
         </div>
         <div className="form-group">
@@ -177,6 +183,8 @@ const TravelEntryForm = ({ onSubmit }) => {
             value={formData.vehicleNumber}
             onChange={handleChange}
             className="input-field"
+            required
+            style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
           />
         </div>
         <div className="form-group">
@@ -291,7 +299,7 @@ const TravelEntryForm = ({ onSubmit }) => {
         </div>
       </div>
 
-      {/* Row 6: Toll Fee, Parking Fee */}
+      {/* Row 6: Toll Fee, Parking Fee, Purpose */}
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="tollFee">Toll Fee:</label>
@@ -328,13 +336,13 @@ const TravelEntryForm = ({ onSubmit }) => {
         </div>
       </div>
 
-      {/* Row 7: Purpose */}
+      {/* Row 7: button */}
       <div className="form-row btn">
-       <button className="submit-btn" type="submit">
+       <button className="submit-btn no-print" type="submit">
         Submit
       </button>
 
-      <button className="print-btn" type="print">
+      <button className="print-btn no-print" onClick={handlePrint}>
         Print
       </button> 
       </div>

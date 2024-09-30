@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 const travelAgencies = [
   "Entrex",
@@ -25,69 +25,103 @@ const TravelEntryForm = ({ onSubmit }) => {
     closingTime: "",
     guestNumber: "",
     tollFee: "",
-    parkingFee: "", // New field for parking fee
-    vehicleName: "", // New field for vehicle name
-    vehicleNumber: "", // New field for vehicle number
-    driverName: "", // New field for driver name
-    purpose: "local", // New field for purpose
+    parkingFee: "",
+    vehicleName: "",
+    vehicleNumber: "",
+    driverName: "",
+    purpose: "local",
     date: new Date().toISOString().slice(0, 10),
     agency: "Entrex",
     totalKm: "",
     totalHours: "",
+    invoiceNumber: "",
   });
 
+  const [invoiceCount, setInvoiceCount] = useState(0);
+
   useEffect(() => {
+    const now = new Date();
+    const currentDate = now.toISOString().slice(0, 10);
+    const savedDate = localStorage.getItem('invoiceDate');
+    const savedCount = localStorage.getItem('invoiceCount');
+
+    if (savedDate === currentDate) {
+      setInvoiceCount(Number(savedCount));
+    } else {
+      setInvoiceCount(0);
+      localStorage.setItem('invoiceDate', currentDate);
+      localStorage.setItem('invoiceCount', '0');
+    }
+
+    // Generate initial invoice number
+    const initialInvoiceNumber = generateInvoiceNumber(0);
+    setFormData(prev => ({ ...prev, invoiceNumber: initialInvoiceNumber }));
+  }, []);
+
+  const generateInvoiceNumber = (count) => {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const invoiceCount = String(count + 1).padStart(3, '0');
+    return `STINV-${year}${month}${day}${invoiceCount}`;
+  };
+
+  const { totalKm, totalHours } = useMemo(() => {
     const totalKm =
       formData.closingKm && formData.startingKm
-        ? Number(formData.closingKm) - Number(formData.startingKm)
+        ? Math.max(0, Number(formData.closingKm) - Number(formData.startingKm))
         : "";
-    const startHour = formData.startingTime
-      ? new Date(`1970-01-01T${formData.startingTime}`).getHours()
-      : 0;
-    const startMinute = formData.startingTime
-      ? new Date(`1970-01-01T${formData.startingTime}`).getMinutes()
-      : 0;
-    const closeHour = formData.closingTime
-      ? new Date(`1970-01-01T${formData.closingTime}`).getHours()
-      : 0;
-    const closeMinute = formData.closingTime
-      ? new Date(`1970-01-01T${formData.closingTime}`).getMinutes()
-      : 0;
+    
+    const startTime = formData.startingTime ? new Date(`1970-01-01T${formData.startingTime}`) : null;
+    const closeTime = formData.closingTime ? new Date(`1970-01-01T${formData.closingTime}`) : null;
+    
+    let totalHours = "";
+    if (startTime && closeTime) {
+      let diff = closeTime - startTime;
+      if (diff < 0) diff += 24 * 60 * 60 * 1000;
+      const hours = Math.floor(diff / (60 * 60 * 1000));
+      const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+      totalHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
 
-    const totalMinutes =
-      closeHour * 60 + closeMinute - (startHour * 60 + startMinute);
-    const totalHours =
-      totalMinutes > 0
-        ? `${Math.floor(totalMinutes / 60)}:${totalMinutes % 60}`
-        : "";
+    return { totalKm, totalHours };
+  }, [formData.startingKm, formData.closingKm, formData.startingTime, formData.closingTime]);
 
-    setFormData((prev) => ({
-      ...prev,
-      totalKm: totalKm >= 0 ? totalKm : "",
-      totalHours: totalHours || "",
-    }));
-  }, [
-    formData.startingKm,
-    formData.closingKm,
-    formData.startingTime,
-    formData.closingTime,
-  ]);
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, totalKm, totalHours }));
+  }, [totalKm, totalHours]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Update invoice number if necessary fields are filled
+    if (
+      formData.guestName &&
+      formData.startingKm &&
+      formData.closingKm &&
+      formData.startingTime &&
+      formData.closingTime &&
+      formData.guestNumber &&
+      formData.vehicleName &&
+      formData.vehicleNumber
+    ) {
+      const newInvoiceNumber = generateInvoiceNumber(invoiceCount);
+      setFormData(prev => ({ ...prev, invoiceNumber: newInvoiceNumber }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    onSubmit(formData);
 
-    onSubmit({
-      ...formData,
-      invoiceNumber: generateInvoiceNumber(),
-    });
+    // Update invoice count
+    const newCount = invoiceCount + 1;
+    setInvoiceCount(newCount);
+    localStorage.setItem('invoiceCount', String(newCount));
 
+    // Reset form
     setFormData({
       guestName: "",
       startingKm: "",
@@ -105,6 +139,7 @@ const TravelEntryForm = ({ onSubmit }) => {
       agency: "Entrex",
       totalKm: "",
       totalHours: "",
+      invoiceNumber: generateInvoiceNumber(newCount), // Set new invoice number for next entry
     });
   };
 
@@ -112,16 +147,8 @@ const TravelEntryForm = ({ onSubmit }) => {
     window.print();
   };
 
-  const generateInvoiceNumber = () => {
-    return `INV-${Math.floor(Math.random() * 1000000)}`;
-  };
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="travel-entry-form"
-      style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-    >
+    <form onSubmit={handleSubmit} className="travel-entry-form" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {/* Row 1: Invoice Number, Date, Travel Agency */}
       <div className="form-row">
         <div className="form-group">
@@ -129,8 +156,8 @@ const TravelEntryForm = ({ onSubmit }) => {
           <input
             type="text"
             name="invoiceNumber"
-            value={`STIV-${Math.floor(Math.random() * 1000000)}`}
-            disabled
+            value={formData.invoiceNumber}
+            onChange={handleChange}
             style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
           />
         </div>
@@ -195,6 +222,7 @@ const TravelEntryForm = ({ onSubmit }) => {
             value={formData.driverName}
             onChange={handleChange}
             className="input-field"
+            style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
           />
         </div>
       </div>
@@ -255,8 +283,7 @@ const TravelEntryForm = ({ onSubmit }) => {
             type="number"
             name="totalKm"
             value={formData.totalKm}
-            onChange={handleChange}
-            disabled={!formData.totalKm}
+            readOnly
             style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
           />
         </div>
@@ -292,8 +319,7 @@ const TravelEntryForm = ({ onSubmit }) => {
             type="text"
             name="totalHours"
             value={formData.totalHours}
-            onChange={handleChange}
-            disabled={!formData.totalHours}
+            readOnly
             style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
           />
         </div>
@@ -330,24 +356,21 @@ const TravelEntryForm = ({ onSubmit }) => {
             style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
           >
             <option value="local">Local</option>
-            <option value="outstation">Outstation</option>
-            <option value="Pickup-Drop">Pickup-Drop</option>
+            <option value="business">Business</option>
+            <option value="personal">Personal</option>
           </select>
         </div>
       </div>
 
-      {/* Row 7: button */}
-      <div className="form-row btn">
-       <button className="submit-btn no-print" type="submit">
-        Submit
-      </button>
-
-      <button className="print-btn no-print" onClick={handlePrint}>
-        Print
-      </button> 
+      {/* Submit Button and Print Button */}
+      <div className="form-actions btn">
+        <button className="submit-btn no-print" type="submit">
+          Submit
+        </button>
+        <button className="print-btn no-print" type="button" onClick={handlePrint}>
+          Print
+        </button>
       </div>
-      
-      
     </form>
   );
 };

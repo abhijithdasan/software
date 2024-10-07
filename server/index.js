@@ -1,44 +1,52 @@
 const express = require('express');
-const cors = require('cors');
-const { google } = require('googleapis');
-require('dotenv').config();
+const bodyParser = require('body-parser');
+const { authorize, createDailySheet, appendDataToDailySheet } = require('./googleSheets');
 
 const app = express();
-const port = 5000; // You can change this port if needed
+const PORT = 3000; // Use uppercase as a convention for constants
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json()); // Middleware for parsing JSON bodies
 
-// Google OAuth configuration
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI;
-
-const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-
-// Route to initiate OAuth flow
-app.get('/auth/google', (req, res) => {
-    const url = oAuth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/documents'],
-    });
-    res.redirect(url);
-});
-
-// Callback route
-app.get('/auth/google/callback', async (req, res) => {
-    const { code } = req.query;
+// Route to add daily data
+app.post('/addDailyData', async (req, res) => {
     try {
-        const { tokens } = await oAuth2Client.getToken(code);
-        oAuth2Client.setCredentials(tokens);
-        res.status(200).json({ message: 'Authentication successful!', tokens });
+        const auth = await authorize();
+        await createDailySheet(auth);
+        await appendDataToDailySheet(auth, req.body.data); // Assuming data is sent in the request body
+        res.status(200).send('Data added successfully!');
     } catch (error) {
-        res.status(400).json({ error: 'Error retrieving access token.' });
+        console.error('Error adding data:', error);
+        res.status(500).send('Error adding data');
     }
 });
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+// Basic route to check if server is running
+app.get('/', (req, res) => {
+    res.send('Hello, World!');
+});
+
+// OAuth callback route
+// OAuth callback route
+app.get('/auth/google/callback', async (req, res) => {
+    const { code } = req.query; // Get the code from the query parameters
+    if (!code) {
+        return res.status(400).send('No code found');
+    }
+
+    try {
+        const auth = await authorize(); // Make sure to call your authorize method correctly
+        // Exchange the authorization code for tokens
+        const { tokens } = await auth.getToken(code);
+        auth.setCredentials(tokens); // Set the tokens on the auth object
+        res.send('Google OAuth authentication successful! Tokens: ' + JSON.stringify(tokens));
+    } catch (error) {
+        console.error('Error exchanging code for token:', error);
+        res.status(500).send('Error during token exchange');
+    }
+});
+
+
+// Start the server using the correct variable name
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });

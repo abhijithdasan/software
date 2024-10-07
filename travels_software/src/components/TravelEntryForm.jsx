@@ -31,7 +31,7 @@ const TravelEntryForm = ({ onSubmit }) => {
     driverName: "",
     purpose: "local",
     date: new Date().toISOString().slice(0, 10),
-    agency: "Entrex",
+    agency: "",
     totalKm: "",
     totalHours: "",
     invoiceNumber: "",
@@ -136,7 +136,7 @@ const TravelEntryForm = ({ onSubmit }) => {
       driverName: "",
       purpose: "local",
       date: new Date().toISOString().slice(0, 10),
-      agency: "Entrex",
+      agency: "",
       totalKm: "",
       totalHours: "",
       invoiceNumber: generateInvoiceNumber(newCount), // Set new invoice number for next entry
@@ -148,7 +148,7 @@ const TravelEntryForm = ({ onSubmit }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="travel-entry-form" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <form onSubmit={handleSubmit} className="travel-entry-form" style={{  }}>
       {/* Row 1: Invoice Number, Date, Travel Agency */}
       <div className="form-row">
         <div className="form-group">
@@ -253,10 +253,10 @@ const TravelEntryForm = ({ onSubmit }) => {
         </div>
       </div>
 
-      {/* Row 4: Starting Km, Closing Km, Total Km */}
+      {/* Row 4: Starting, Closing KM and Total Hours */}
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="startingKm">Starting Km:</label>
+          <label htmlFor="startingKm">Starting KM:</label>
           <input
             type="number"
             name="startingKm"
@@ -267,7 +267,7 @@ const TravelEntryForm = ({ onSubmit }) => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="closingKm">Closing Km:</label>
+          <label htmlFor="closingKm">Closing KM:</label>
           <input
             type="number"
             name="closingKm"
@@ -278,9 +278,9 @@ const TravelEntryForm = ({ onSubmit }) => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="totalKm">Total Km:</label>
+          <label htmlFor="totalKm">Total KM:</label>
           <input
-            type="number"
+            type="text"
             name="totalKm"
             value={formData.totalKm}
             readOnly
@@ -289,7 +289,7 @@ const TravelEntryForm = ({ onSubmit }) => {
         </div>
       </div>
 
-      {/* Row 5: Starting Time, Closing Time, Total Hours */}
+      {/* Row 5: Starting, Closing Time and Total Hours */}
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="startingTime">Starting Time:</label>
@@ -325,8 +325,20 @@ const TravelEntryForm = ({ onSubmit }) => {
         </div>
       </div>
 
-      {/* Row 6: Toll Fee, Parking Fee, Purpose */}
+      {/* Row 6: Purpose, Toll Fee, and Parking Fee */}
       <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="purpose">Purpose:</label>
+          <select
+            name="purpose"
+            value={formData.purpose}
+            onChange={handleChange}
+            style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
+          >
+            <option value="local">Local</option>
+            <option value="outstation">Outstation</option>
+          </select>
+        </div>
         <div className="form-group">
           <label htmlFor="tollFee">Toll Fee:</label>
           <input
@@ -347,24 +359,9 @@ const TravelEntryForm = ({ onSubmit }) => {
             style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="purpose">Purpose:</label>
-          <select
-            name="purpose"
-            value={formData.purpose}
-            onChange={handleChange}
-            style={{ padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px" }}
-          >
-            <option value="local">Local</option>
-            <option value="business">Business</option>
-            <option value="personal">Personal</option>
-          </select>
-        </div>
       </div>
-
-      {/* Submit Button and Print Button */}
-      <div className="form-actions btn">
-        <button className="submit-btn no-print" type="submit">
+      <div className="form-actions btn" style={{ display: "flex", gap: "1rem" }}>
+        <button className="submit-btn no-print" type="submit" >
           Submit
         </button>
         <button className="print-btn no-print" type="button" onClick={handlePrint}>

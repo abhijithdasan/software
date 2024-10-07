@@ -1,3 +1,6 @@
+body {
+  background-color: #FFE8C5;
+}
 .container {
   width: 100%;
   display: flex;
@@ -35,13 +38,14 @@
 }
 
 .travel-entry-form {
-  display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 1.5rem;
+  row-gap: 3px;
   padding: 1.5rem;
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .column {
@@ -63,7 +67,6 @@
 
 .form-group label {
   font-weight: bold;
-  margin-bottom: 0.6rem;
   color: #555;
 }
 
@@ -88,7 +91,6 @@
   justify-content: center;
   align-items: center;
   gap: 0.8rem;
-  margin-top: 1rem;
   padding: 0.8rem 1.2rem;
   font-size: 1rem;
   cursor: pointer;
@@ -104,7 +106,6 @@
   padding: 0.8rem 1.2rem;
   font-size: 1rem;
   cursor: pointer;
-  margin-bottom: 0.6rem;
   transition: background-color 0.3s;
 }
 
@@ -136,5 +137,14 @@
   
   .no-print {
     display: none;
+  }
+  body {
+    background-color: #fff;
+  }
+  .tittle{
+    margin-top: 0;
+  }
+  .travel-entry-form{
+    box-shadow: none;
   }
 }

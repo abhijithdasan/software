@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Alert } from './Alert';
 import { login } from '../utils/api';
+import PropTypes from 'prop-types';
 
 const LoginForm = ({ onSubmit }) => {
   const [username, setUsername] = useState("");
@@ -29,6 +30,12 @@ const LoginForm = ({ onSubmit }) => {
       });
       
       if (response.success) {
+
+        // Store auth token or user data in localStorage
+        localStorage.setItem('isAuthenticated', 'true');
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+        }
         setIsLoading(false);
         onSubmit(true);
         navigate(from, { replace: true });
@@ -87,6 +94,9 @@ const LoginForm = ({ onSubmit }) => {
       </div>
     </div>
   );
+};
+LoginForm.propTypes = {
+  onSubmit: PropTypes.func.isRequired
 };
 
 export default LoginForm;

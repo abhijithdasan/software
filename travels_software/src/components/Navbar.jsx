@@ -1,10 +1,25 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-const Navbar = ({ handleLogout }) => {
+const Navbar = ({ handleLogout: onLogout }) => {  // Rename prop to avoid conflict
   const location = useLocation();
-  
+  const navigate = useNavigate();
+
   const isActive = (path) => location.pathname === path;
+
+  const handleLogoutClick = () => {  // Renamed local function
+    // Clear authentication data
+    localStorage.removeItem('isLoggedIn');  // Changed to match App.jsx
+    localStorage.removeItem('token');
+    
+    // Call the parent's logout handler
+    if (onLogout) {
+      onLogout();
+    }
+    
+    navigate('/login');
+  };
 
   return (
     <nav className="bg-white shadow-md">
@@ -53,7 +68,7 @@ const Navbar = ({ handleLogout }) => {
             </Link>
 
             <button
-              onClick={handleLogout}
+              onClick={handleLogoutClick}  // Updated to use new function name
               className="ml-4 px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors duration-200"
             >
               Logout
@@ -63,6 +78,11 @@ const Navbar = ({ handleLogout }) => {
       </div>
     </nav>
   );
+};
+
+// Add PropTypes validation
+Navbar.propTypes = {
+  handleLogout: PropTypes.func.isRequired
 };
 
 export default Navbar;

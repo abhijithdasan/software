@@ -6,11 +6,10 @@ import Home from "./pages/Home";
 import TravelEntriesPage from "./pages/TravelEntriesPage";
 import Navbar from "./components/Navbar";
 import "./index.css";
-import PropTypes from 'prop-types'; // Add this for props validation
+import PropTypes from 'prop-types';
 
 // Protected Route Wrapper Component
-const ProtectedRoute = ({ children }) => {
-  const [isLoggedIn] = useState(localStorage.getItem("isLoggedIn") === "true");
+const ProtectedRoute = ({ children, isLoggedIn, handleLogout }) => {
   const location = useLocation();
 
   if (!isLoggedIn) {
@@ -19,7 +18,7 @@ const ProtectedRoute = ({ children }) => {
 
   return (
     <>
-      <Navbar />
+      <Navbar handleLogout={handleLogout} />
       {children}
     </>
   );
@@ -27,24 +26,27 @@ const ProtectedRoute = ({ children }) => {
 
 // Add PropTypes validation
 ProtectedRoute.propTypes = {
-  children: PropTypes.node.isRequired
+  children: PropTypes.node.isRequired,
+  isLoggedIn: PropTypes.bool.isRequired,
+  handleLogout: PropTypes.func.isRequired
 };
 
 const App = () => {
-  console.log('App rendering');
-  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("isLoggedIn") === "true");
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    localStorage.getItem("isLoggedIn") === "true"
+  );
 
   // Handle login status
   const handleLogin = (status) => {
     setIsLoggedIn(status);
-    localStorage.setItem("isLoggedIn", status);
+    localStorage.setItem("isLoggedIn", status.toString());
   };
 
-  // If you're not using handleLogout, you can remove it
-  // or pass it to Navbar component if needed
+  // Handle logout
   const handleLogout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("token");
   };
 
   return (
@@ -70,7 +72,7 @@ const App = () => {
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute isLoggedIn={isLoggedIn} handleLogout={handleLogout}>
               <Home />
             </ProtectedRoute>
           }
@@ -79,7 +81,7 @@ const App = () => {
         <Route
           path="/travel-entry"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute isLoggedIn={isLoggedIn} handleLogout={handleLogout}>
               <TravelEntryForm />
             </ProtectedRoute>
           }
@@ -88,7 +90,7 @@ const App = () => {
         <Route
           path="/travel-entries"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute isLoggedIn={isLoggedIn} handleLogout={handleLogout}>
               <TravelEntriesPage />
             </ProtectedRoute>
           }

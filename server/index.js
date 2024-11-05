@@ -1,52 +1,76 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const { authorize, createDailySheet, appendDataToDailySheet } = require('./googleSheets');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const userRoutes = require('./routes/userRoutes');
+const travelRoutes = require('./routes/travelRoutes');
+
+// Load environment variables before using them
+dotenv.config();
 
 const app = express();
-const PORT = 3000; // Use uppercase as a convention for constants
 
-app.use(bodyParser.json()); // Middleware for parsing JSON bodies
+// Middleware
+app.use(helmet());
+app.use(morgan('combined'));
+app.use(express.json());
 
-// Route to add daily data
-app.post('/addDailyData', async (req, res) => {
-    try {
-        const auth = await authorize();
-        await createDailySheet(auth);
-        await appendDataToDailySheet(auth, req.body.data); // Assuming data is sent in the request body
-        res.status(200).send('Data added successfully!');
-    } catch (error) {
-        console.error('Error adding data:', error);
-        res.status(500).send('Error adding data');
-    }
+// CORS configuration
+const corsOptions = {
+  origin: process.env.CLIENT_URL,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 600
+};
+
+app.use(cors(corsOptions));
+
+// Debug middleware
+app.use((req, res, next) => {
+  console.log('Incoming request:', {
+    method: req.method,
+    path: req.path,
+    body: req.body,
+    headers: req.headers
+  });
+  next();
 });
 
-// Basic route to check if server is running
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB Atlas'))
+  .catch((error) => console.error('MongoDB connection error:', error));
+
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/travels', travelRoutes);
+
+// Basic route
 app.get('/', (req, res) => {
-    res.send('Hello, World!');
+  res.send('Server is running');
 });
 
-// OAuth callback route
-// OAuth callback route
-app.get('/auth/google/callback', async (req, res) => {
-    const { code } = req.query; // Get the code from the query parameters
-    if (!code) {
-        return res.status(400).send('No code found');
-    }
-
-    try {
-        const auth = await authorize(); // Make sure to call your authorize method correctly
-        // Exchange the authorization code for tokens
-        const { tokens } = await auth.getToken(code);
-        auth.setCredentials(tokens); // Set the tokens on the auth object
-        res.send('Google OAuth authentication successful! Tokens: ' + JSON.stringify(tokens));
-    } catch (error) {
-        console.error('Error exchanging code for token:', error);
-        res.status(500).send('Error during token exchange');
-    }
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
+// Start the server
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
 
-// Start the server using the correct variable name
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+// Graceful Shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await mongoose.connection.close();
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });

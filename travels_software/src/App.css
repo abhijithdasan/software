@@ -3,9 +3,17 @@
 @tailwind utilities;
 
 
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  font-family: sans-serif;
   background-color: #f9fafb;
+  font-family: sans-serif;
   color: #333;
 }
 

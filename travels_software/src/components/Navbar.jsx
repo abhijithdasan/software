@@ -1,12 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Navbar = () => {
+const Navbar = ({ handleLogout }) => {
   const location = useLocation();
   
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const isActive = (path) => location.pathname === path;
 
   return (
     <nav className="bg-white shadow-md">
@@ -15,7 +13,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <span className="text-xl font-bold text-gray-800">
-                Travel Tracker
+                6|10   Travels
               </span>
             </Link>
           </div>
@@ -53,6 +51,13 @@ const Navbar = () => {
             >
               View Entries
             </Link>
+
+            <button
+              onClick={handleLogout}
+              className="ml-4 px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors duration-200"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </div>

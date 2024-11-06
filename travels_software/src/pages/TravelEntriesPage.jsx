@@ -54,7 +54,7 @@ const TravelEntriesPage = () => {
 
   return (
     <div className="w-full flex flex-col items-center bg-gray-50 p-8">
-      <h1 className="text-4xl font-bold text-gray-800 text-center mb-6">Trip Sheet Entries</h1>
+      <h1 className="text-4xl font-bold text-gray-800 text-center mb-6">TripSheet Entries</h1>
       <input
         type="text"
         placeholder="Filter by Agency Name"
@@ -71,6 +71,7 @@ const TravelEntriesPage = () => {
               <th className="px-4 py-2 border">Date</th>
               <th className="px-4 py-2 border">Travels</th>
               <th className="px-4 py-2 border">Vehicle No</th>
+              <th className="px-4 py-2 border">Driver Name</th>
               <th className="px-4 py-2 border">Guest Name</th>
               <th className="px-4 py-2 border">Guest No</th>
               <th className="px-4 py-2 border">Reporting</th>
@@ -81,6 +82,7 @@ const TravelEntriesPage = () => {
               <th className="px-4 py-2 border">Closing KM</th>
               <th className="px-4 py-2 border">Total KM</th>
               <th className="px-4 py-2 border">Parking Fee</th>
+              <th className="px-4 py-2 border">Toll Fee</th>
             </tr>
           </thead>
           <tbody>
@@ -91,6 +93,7 @@ const TravelEntriesPage = () => {
                 <td className="px-4 py-2 border">{new Date(entry.date).toLocaleDateString()}</td>
                 <td className="px-4 py-2 border">{entry.agency}</td>
                 <td className="px-4 py-2 border">{entry.vehicleNumber}</td>
+                <td className="px-4 py-2 border">{entry.driverName}</td>
                 <td className="px-4 py-2 border">{entry.guestName}</td>
                 <td className="px-4 py-2 border">{entry.guestNumber}</td>
                 <td className="px-4 py-2 border">{entry.reporting}</td>
@@ -101,6 +104,7 @@ const TravelEntriesPage = () => {
                 <td className="px-4 py-2 border">{entry.closingKm}</td>
                 <td className="px-4 py-2 border">{entry.totalKm}KM</td>
                 <td className="px-4 py-2 border">{entry.parkingFee}</td>
+                <td className="px-4 py-2 border">{entry.tollFee}</td>
               </tr>
             ))}
           </tbody>

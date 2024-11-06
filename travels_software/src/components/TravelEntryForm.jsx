@@ -4,7 +4,6 @@ import { X } from 'lucide-react';
 import "./LoginForm.css"
 
 const travelAgencies = [
-  " ",
  "AB TRAVELS",
 "APJ ANAND",
  "ARUN RAJA",
@@ -55,24 +54,26 @@ const generateInvoiceNumber = (count) => {
   return `INV-${year}${month}${day}0${count + 1}`;
 };
 
+
 const TravelEntryForm = () => {
   const [formData, setFormData] = useState({
+   
     guestName: '',
-    startingKm: '',
-    closingKm: '',
-    startingTime: '',
-    closingTime: '',
+    startingKm: '0',
+    closingKm: '0',
+    startingTime: '00:00',
+    closingTime: '00:00',
     guestNumber: '',
-    tollFee: '',
-    parkingFee: '',
+    tollFee: '0',
+    parkingFee: '0',
     vehicleName: '',
     vehicleNumber: '',
     driverName: '',
-    purpose: 'local',
+    reporting: '',
     date: new Date().toISOString().slice(0, 10),
     agency: '',
-    totalKm: '',
-    totalHours: '',
+    totalKm: '0',
+    totalHours: '0.00',
     invoiceNumber: generateInvoiceNumber(0),
   });
 
@@ -84,20 +85,19 @@ const TravelEntryForm = () => {
       formData.closingKm && formData.startingKm
         ? Math.max(0, Number(formData.closingKm) - Number(formData.startingKm))
         : '';
-
+  
     const startTime = formData.startingTime ? new Date(`1970-01-01T${formData.startingTime}`) : null;
     const closeTime = formData.closingTime ? new Date(`1970-01-01T${formData.closingTime}`) : null;
-
+  
     let totalHours = '';
     if (startTime && closeTime) {
-      let diff = closeTime - startTime;
-      if (diff < 0) diff += 24 * 60 * 60 * 1000;
-      const hours = Math.floor(diff / (60 * 60 * 1000));
-      const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-      totalHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+      const diffInMs = closeTime - startTime;
+      const totalMinutes = Math.floor(diffInMs / (1000 * 60));
+      totalHours = (totalMinutes / 60).toFixed(2);
     }
-
+  
     return { totalKm, totalHours };
+  
   }, [formData.startingKm, formData.closingKm, formData.startingTime, formData.closingTime]);
 
   useEffect(() => {
@@ -106,17 +106,19 @@ const TravelEntryForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: name === 'startingKm' || name === 'closingKm' || name === 'tollFee' || name === 'parkingFee'
+      ? value.toString()
+      : value, }));
 
     if (
       formData.guestName &&
-      formData.startingKm &&
-      formData.closingKm &&
-      formData.startingTime &&
-      formData.closingTime &&
-      formData.guestNumber &&
-      formData.vehicleName &&
-      formData.vehicleNumber
+    formData.startingKm !== '0' &&
+    formData.closingKm !== '0' &&
+    formData.startingTime &&
+    formData.closingTime &&
+    formData.guestNumber &&
+    formData.vehicleName &&
+    formData.vehicleNumber
     ) {
       const newInvoiceNumber = generateInvoiceNumber(invoiceCount);
       setFormData(prev => ({ ...prev, invoiceNumber: newInvoiceNumber }));
@@ -161,19 +163,19 @@ const TravelEntryForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFE8C5] flex justify-center items-center">
+    <div className="mt-4 flex justify-center items-center">
       <div className="w-full max-w-6xl bg-white rounded-xl shadow-lg p-6 space-y-4">
       {showAlert && (
         <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-5">
           <Alert type="success" onClose={() => setShowAlert(false)}>
-           Form submitted successfully!
+           Tripsheet saved successfully!  .
          </Alert>
         </div>
       )}
 
         <div className="grid grid-cols-3 gap-4">
           <div className="flex-1 flex flex-col space-y-2">
-            <label htmlFor="invoice-number" className="block text-gray-700 font-medium mb-1 sm:mb-2">Invoice Number:</label>
+            <label htmlFor="invoice-number" className="font-bold text-gray-600">Invoice Number:</label>
             <input
               type="text"
               name="invoiceNumber"
@@ -198,7 +200,7 @@ const TravelEntryForm = () => {
               name="agency"
               value={formData.agency}
               onChange={handleChange}
-              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all dropdown"
             >
               {travelAgencies.map((agency, index) => (
                 <option key={index} value={agency}>
@@ -277,7 +279,6 @@ const TravelEntryForm = () => {
               name="startingKm"
               value={formData.startingKm}
               onChange={handleChange}
-              required
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
           </div>
@@ -288,7 +289,6 @@ const TravelEntryForm = () => {
               name="closingKm"
               value={formData.closingKm}
               onChange={handleChange}
-              required
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
           </div>
@@ -312,7 +312,6 @@ const TravelEntryForm = () => {
               name="startingTime"
               value={formData.startingTime}
               onChange={handleChange}
-              required
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
           </div>
@@ -323,7 +322,6 @@ const TravelEntryForm = () => {
               name="closingTime"
               value={formData.closingTime}
               onChange={handleChange}
-              required
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
           </div>
@@ -344,7 +342,7 @@ const TravelEntryForm = () => {
             <label className="font-bold text-gray-600">Reporting</label>
             <input
               type="text"
-              name="guestName"
+              name="reporting"
               value={formData.reporting}
               onChange={handleChange}
               required

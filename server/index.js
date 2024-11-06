@@ -40,9 +40,45 @@ app.use((req, res, next) => {
 });
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB Atlas'))
-  .catch((error) => console.error('MongoDB connection error:', error));
+const connectDB = async () => {
+  try {
+    const mongooseOptions = {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4, // Force IPv4
+    };
+
+    await mongoose.connect(process.env.MONGODB_URI, mongooseOptions);
+    console.log('Connected to MongoDB Atlas');
+
+    mongoose.connection.on('error', (err) => {
+      console.error('MongoDB connection error:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('MongoDB disconnected. Attempting to reconnect...');
+      setTimeout(connectDB, 5000);
+    });
+
+  } catch (error) {
+    console.error('Failed to connect to MongoDB:', error);
+    // Log specific error details for debugging
+    if (error.name === 'MongooseServerSelectionError') {
+      console.error('Connection URI:', process.env.MONGODB_URI?.replace(/:([^:@]{8})[^:@]*@/, ':****@'));
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        reason: error.reason?.type,
+        servers: Array.from(error.reason?.servers?.entries() || [])
+          .map(([host]) => host)
+      });
+    }
+    // Retry connection after delay
+    setTimeout(connectDB, 5000);
+  }
+};
+
+connectDB();
 
 // Routes
 app.use('/api/users', userRoutes);

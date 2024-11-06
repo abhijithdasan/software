@@ -4,19 +4,47 @@ import { X } from 'lucide-react';
 import "./LoginForm.css"
 
 const travelAgencies = [
-  "Entrex",
-  "KTC",
-  "Jessy Cabs",
-  "Ab Travels",
-  "Arun Raja",
-  "CBS",
-  "ETS",
-  "Rayappan",
-  "Serene",
-  "Soorya",
-  "Sujith",
-  "WLT Jakku",
-  "Other",
+  " ",
+ "AB TRAVELS",
+"APJ ANAND",
+ "ARUN RAJA",
+ "CBS",
+ "DAKSHINA MOORTHI",
+ "DENEB",
+ "ECO",
+ "ENTREX",
+ "ETS",
+ "HTZ SHANKAR",
+ "JESSY CABS",
+ "KTC",
+ "KVT",
+ "LPM",
+ "MANISHA",
+ "NAZEER",
+ "NEW TRAVELS",
+ "ORCHID",
+ "ORIX ARUL",
+ "PANDIYA",
+ "PRAKASH TAJ",
+ "RADHIKA",
+ "RAGU",
+ "RAJOO CABS",
+ "RAYAPPAN",
+ "RIDE INN",
+ "SAM TRAVELS",
+ "SEENU",
+ "SERENE",
+ "SOORYA",
+ "SREE-SAI KISHOR",
+ "SRINIVASAN",
+ "SUKRA",
+ "SUJITH",
+ "VINEETH RAJ",
+ "VISHNU TRAVELS",
+ "VKB",
+ "VOIT",
+ "WLT JAKKU",
+ "OTHER"
 ];
 
 const generateInvoiceNumber = (count) => {
@@ -119,7 +147,7 @@ const TravelEntryForm = () => {
       vehicleName: '',
       vehicleNumber: '',
       driverName: '',
-      purpose: 'local',
+      reporting: '',
       date: new Date().toISOString().slice(0, 10),
       agency: '',
       totalKm: '',
@@ -313,16 +341,15 @@ const TravelEntryForm = () => {
 
         <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col space-y-2">
-            <label className="font-bold text-gray-600">Purpose:</label>
-            <select
-              name="purpose"
-              value={formData.purpose}
+            <label className="font-bold text-gray-600">Reporting</label>
+            <input
+              type="text"
+              name="guestName"
+              value={formData.reporting}
               onChange={handleChange}
+              required
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            >
-              <option value="local">Local</option>
-              <option value="outstation">Outstation</option>
-            </select>
+            />
           </div>
           <div className="flex flex-col space-y-2">
             <label className="font-bold text-gray-600">Toll Fee:</label>

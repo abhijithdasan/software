@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Alert } from './Alert';
-import { X } from 'lucide-react';
 import "./LoginForm.css";
 import { addTravelEntry } from '../utils/api.js';
 
@@ -22,6 +21,8 @@ const generateInvoiceNumber = (count) => {
   return `INV-${year}${month}${day}0${count + 1}`;
 };
 
+
+
 const TravelEntryForm = () => {
   const [formData, setFormData] = useState({
     guestName: '',
@@ -40,6 +41,7 @@ const TravelEntryForm = () => {
     agency: '',
     totalKm: '0',
     totalHours: '0.00',
+    amount: '0',
     invoiceNumber: generateInvoiceNumber(0),
   });
 
@@ -52,14 +54,21 @@ const TravelEntryForm = () => {
         ? Math.max(0, Number(formData.closingKm) - Number(formData.startingKm))
         : '';
   
-    const startTime = formData.startingTime ? new Date(`1970-01-01T${formData.startingTime}`) : null;
-    const closeTime = formData.closingTime ? new Date(`1970-01-01T${formData.closingTime}`) : null;
+    //const startTime = formData.startingTime ? new Date(`1970-01-01T${formData.startingTime}`) : null;
+    //const closeTime = formData.closingTime ? new Date(`1970-01-01T${formData.closingTime}`) : null;
   
-    let totalHours = '';
-    if (startTime && closeTime) {
+    let totalHours = "00:00";
+    if (formData.startingTime && formData.closingTime) {
+      const startTime = new Date(`1970-01-01T${formData.startingTime}`);
+      const closeTime = new Date(`1970-01-01T${formData.closingTime}`);
       const diffInMs = closeTime - startTime;
-      const totalMinutes = Math.floor(diffInMs / (1000 * 60));
-      totalHours = (totalMinutes / 60).toFixed(2);
+  
+      const totalMinutes = Math.floor(diffInMs / (1000 * 60)); // Total difference in minutes
+      const hours = Math.floor(totalMinutes / 60); // Extract hours
+      const minutes = totalMinutes % 60; // Extract remaining minutes
+  
+      // Format to "HH:MM" by padding with zeros if needed
+      totalHours = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     }
   
     return { totalKm, totalHours };
@@ -81,6 +90,13 @@ const TravelEntryForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // Show confirmation dialog before submission
+    const confirmed = window.confirm("Are you sure you want to submit the form?");
+    if (!confirmed) {
+      return; // Stop the form submission if the user cancels
+    }
+  
     console.log("Form submitted:", formData);
   
     // Validation: check for required fields
@@ -107,13 +123,11 @@ const TravelEntryForm = () => {
     };
   
     try {
-      // Call the API function to submit the form data
       const response = await addTravelEntry(entryData);
       console.log("Entry successfully added:", response);
   
       // Update invoice count
-      const newCount = invoiceCount + 1;
-      setInvoiceCount(newCount);
+      setInvoiceCount(prevCount => prevCount + 1);
   
       // Reset form
       setFormData({
@@ -133,7 +147,7 @@ const TravelEntryForm = () => {
         agency: '',
         totalKm: '',
         totalHours: '',
-        invoiceNumber: generateInvoiceNumber(newCount),
+        invoiceNumber: generateInvoiceNumber(invoiceCount + 1),
       });
   
       setShowAlert(false); // Hide any previous alerts
@@ -226,7 +240,7 @@ const TravelEntryForm = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col space-y-2">
             <label className="font-bold text-gray-600">Guest Name:</label>
             <input
@@ -249,6 +263,17 @@ const TravelEntryForm = () => {
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
           </div>
+          <div className="flex flex-col space-y-2">
+            <label className="font-bold text-gray-600">Reporting:</label>
+            <input
+              type="text"
+              name="reporting"
+              value={formData.reporting}
+              onChange={handleChange}
+              required
+              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
@@ -257,7 +282,7 @@ const TravelEntryForm = () => {
             <input
               type="number"
               name="startingKm"
-              value={formData.startingKm}
+              value={formData.startingKm || ''}
               onChange={handleChange}
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
@@ -267,7 +292,7 @@ const TravelEntryForm = () => {
             <input
               type="number"
               name="closingKm"
-              value={formData.closingKm}
+              value={formData.closingKm || ''}
               onChange={handleChange}
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
@@ -319,17 +344,6 @@ const TravelEntryForm = () => {
 
         <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col space-y-2">
-            <label className="font-bold text-gray-600">Reporting</label>
-            <input
-              type="text"
-              name="reporting"
-              value={formData.reporting}
-              onChange={handleChange}
-              required
-              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            />
-          </div>
-          <div className="flex flex-col space-y-2">
             <label className="font-bold text-gray-600">Toll Fee:</label>
             <input
               type="number"
@@ -349,9 +363,19 @@ const TravelEntryForm = () => {
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
           </div>
-        </div>
-          
-          <div className="flex justify-center items-center gap-4 print:hidden">
+          <div className="flex flex-col space-y-2">
+            <label className="font-bold text-gray-600">Total Amount:</label>
+            <input
+              type="number"
+              name="amount"
+              value={formData.amount}
+              onChange={handleChange}
+              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            />
+          </div>
+        </div> 
+        
+          <div className="ml-8 flex justify-center items-center gap-4 print:hidden">
             <button
               type="submit"
               className="mt-5 px-6 py-3 bg-blue-600 text-white rounded ml-2 sm:ml-4 hover:bg-blue-700 transition-colors duration-300"

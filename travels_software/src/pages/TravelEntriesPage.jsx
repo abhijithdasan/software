@@ -62,7 +62,7 @@ const TravelEntriesPage = () => {
         onChange={handleFilterChange}
         className="w-full max-w-lg p-2 mb-4 border rounded"
       />
-      <div className="overflow-auto w-full">
+      <div className="overflow-x-auto w-full">
         <table className="min-w-full bg-white shadow-md rounded-lg">
           <thead>
             <tr className="bg-gray-200">
@@ -83,6 +83,7 @@ const TravelEntriesPage = () => {
               <th className="px-4 py-2 border">Total KM</th>
               <th className="px-4 py-2 border">Parking Fee</th>
               <th className="px-4 py-2 border">Toll Fee</th>
+              <th className="px-4 py-2 border">Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -105,6 +106,7 @@ const TravelEntriesPage = () => {
                 <td className="px-4 py-2 border">{entry.totalKm}KM</td>
                 <td className="px-4 py-2 border">{entry.parkingFee}</td>
                 <td className="px-4 py-2 border">{entry.tollFee}</td>
+                <td className="px-4 py-2 border">{entry.amount}</td>
               </tr>
             ))}
           </tbody>

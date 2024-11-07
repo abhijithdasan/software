@@ -1,26 +1,23 @@
-// models/Travel.js
 const mongoose = require('mongoose');
 
 const travelSchema = new mongoose.Schema({
   guestName: { type: String, required: true },
-  startingKm: { type: Number, required: false,default: 0 },
-  closingKm: { type: Number, required: false, default: 0 },
-  startingTime: { type: String, required: false, },
-  closingTime: { type: String, required: false },
+  startingKm: { type: Number, required: true },
+  closingKm: { type: Number, required: true },
+  startingTime: { type: String, required: true },
+  closingTime: { type: String, required: true },
   guestNumber: { type: String, required: true },
-  tollFee: { type: Number, required: false, default: 0 },
-  parkingFee: { type: Number, required: false, default: 0 },
+  tollFee: { type: Number },
+  parkingFee: { type: Number },
   vehicleName: { type: String, required: true },
   vehicleNumber: { type: String, required: true },
   driverName: { type: String, required: true },
   reporting: { type: String, required: true },
   date: { type: Date, required: true },
   agency: { type: String, required: true },
-  totalKm: { type: Number, required: false }, 
-  totalHours: { type: Number, required: false },
+  totalKm: { type: Number },
+  totalHours: { type: Number },
   invoiceNumber: { type: String, required: true },
 });
 
-
-const Travel = mongoose.model('Travel', travelSchema);
-module.exports = Travel;
+module.exports = mongoose.model('TravelEntry', travelSchema);

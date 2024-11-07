@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
       vehicleName,
       vehicleNumber,
       driverName,
-      reporting,
+      reporting,  
       date,
       agency,
       totalKm,
@@ -26,10 +26,12 @@ router.post('/', async (req, res) => {
       invoiceNumber
     } = req.body;
 
-    if (!guestName || !guestNumber || !vehicleName || !vehicleNumber ||
-        !driverName || !reporting || !date || !agency || !invoiceNumber ) {
-      return res.status(400).json({ error: "All fields are required" });
-    }
+  // Validate that all required fields are present
+if (!guestName || !guestNumber || !vehicleName || !vehicleNumber || 
+    !driverName || !reporting || !date || !agency || !invoiceNumber) {
+  return res.status(400).json({ error: "All fields are required" });
+}
+
 
     const travelEntry = new TravelEntry(req.body);
     await travelEntry.save();
@@ -62,10 +64,7 @@ router.get('/daily-sheet', async (req, res) => {
       date: { $gte: startOfDay, $lt: endOfDay }
     });
 
-    // Assuming each entry represents a single car usage, we can count entries
-    const totalCarsUsed = dailyEntries.length;
-
-    res.status(200).json({ date: new Date().toLocaleDateString(), totalCarsUsed });
+    res.status(200).json({ date: new Date().toLocaleDateString(), dailyEntries });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

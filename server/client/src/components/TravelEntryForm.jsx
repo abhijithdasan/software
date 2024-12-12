@@ -43,31 +43,32 @@ const TravelEntryForm = () => {
   const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
-    const fetchCurrentInvoiceNumber = async () => {
-      try {
-        const response = await fetch('/api/invoice/current', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch invoice number');
-        }
-        
-        const data = await response.json();
-        setFormData(prev => ({
-          ...prev,
-          invoiceNumber: formatInvoiceNumber(data.currentNumber)
-        }));
-      } catch (error) {
-        console.error('Error fetching invoice number:', error);
+  const fetchCurrentInvoiceNumber = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/travels/invoice/current');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch invoice number');
       }
-    };
+      
+      const data = await response.json();
+      if (data.currentNumber === undefined) {
+        throw new Error('Invalid response from server');
+      }
 
-    fetchCurrentInvoiceNumber();
-  }, []);
+      setFormData(prev => ({
+        ...prev,
+        invoiceNumber: formatInvoiceNumber(data.currentNumber),
+      }));
+    } catch (error) {
+      console.error('Error fetching invoice number:', error);
+      alert('Unable to fetch the current invoice number. Please try again.');
+    }
+  };
+
+  fetchCurrentInvoiceNumber();
+}, []);
+
 
   
   const { totalKm, totalHours } = useMemo(() => {

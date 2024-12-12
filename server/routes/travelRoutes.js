@@ -1,13 +1,70 @@
-// routes/travelRoutes.js
 const express = require('express');
-const TravelEntry = require('../models/Travel'); // Ensure this path is correct
+const TravelEntry = require('../models/Travel');
+const Config = require('../models/Config');
 const router = express.Router();
+
+// Function to generate invoice number
+const generateInvoiceNumber = (counter) => {
+  return `STINV${counter.toString().padStart(7, '0')}`;
+};
+
+// Get current invoice number
+router.get('/invoice/current', async (req, res) => {
+  try {
+    let config = await Config.findOne({ key: 'invoiceCounter' });
+
+    if (!config) {
+      config = new Config({ key: 'invoiceCounter', value: 1 });
+      await config.save();
+    }
+
+    const currentInvoice = generateInvoiceNumber(config.value);
+    res.status(200).json({ 
+      currentNumber: config.value,
+      formattedInvoice: currentInvoice 
+    });
+  } catch (error) {
+    console.error('Error fetching current invoice:', error);
+    res.status(500).json({ error: 'Failed to fetch invoice number' });
+  }
+});
+
+// Get next invoice number and increment
+router.post('/invoice/next', async (req, res) => {
+  try {
+    let config = await Config.findOne({ key: 'invoiceCounter' });
+    
+    if (!config) {
+      config = new Config({ key: 'invoiceCounter', value: 1 });
+    }
+    
+    const nextNumber = config.value + 1;
+    config.value = nextNumber;
+    await config.save();
+    
+    const formattedInvoice = generateInvoiceNumber(nextNumber);
+    
+    res.status(200).json({ 
+      nextNumber,
+      formattedInvoice
+    });
+  } catch (error) {
+    console.error('Error generating next invoice:', error);
+    res.status(500).json({ error: 'Failed to generate next invoice number' });
+  }
+});
 
 // Endpoint for adding a travel entry
 router.post('/', async (req, res) => {
-  console.log('Received data:', req.body); // Debugging line to log received data
+  console.log('Received data:', req.body);
   try {
-    // Validate that all required fields are present
+    let config = await Config.findOne({ key: 'invoiceCounter' });
+
+    if (!config) {
+      config = new Config({ key: 'invoiceCounter', value: 1 });
+      await config.save();
+    }
+
     const {
       guestName,
       startingKm,
@@ -18,42 +75,67 @@ router.post('/', async (req, res) => {
       vehicleName,
       vehicleNumber,
       driverName,
-      reporting,  
+      reporting,
       date,
       agency,
       totalKm,
       totalHours,
-      invoiceNumber
     } = req.body;
 
-  // Validate that all required fields are present
-if (!guestName || !guestNumber || !vehicleName || !vehicleNumber || 
-    !driverName || !reporting || !date || !agency || !invoiceNumber) {
-  return res.status(400).json({ error: "All fields are required" });
-}
+    if (
+      !guestName || !startingKm || !closingKm || !startingTime || !closingTime || !guestNumber ||
+      !vehicleName || !vehicleNumber || !driverName || !reporting || !date || !agency
+    ) {
+      return res.status(400).json({ error: 'All required fields must be filled' });
+    }
 
+    const currentCount = config.value;
+    const newInvoiceNumber = generateInvoiceNumber(currentCount);
 
-    const travelEntry = new TravelEntry(req.body);
-    await travelEntry.save();
-    res.status(201).json(travelEntry);
+    const newEntry = new TravelEntry({
+      guestName,
+      startingKm,
+      closingKm,
+      startingTime,
+      closingTime,
+      guestNumber,
+      vehicleName,
+      vehicleNumber,
+      driverName,
+      reporting,
+      date,
+      agency,
+      totalKm,
+      totalHours,
+      invoiceNumber: newInvoiceNumber,
+    });
+
+    await newEntry.save();
+
+    config.value = currentCount + 1;
+    await config.save();
+
+    res.status(201).json({ success: true, newEntry });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error adding travel entry:', error);
+    res.status(500).json({ error: 'Failed to create travel entry' });
   }
 });
 
-// Get all travel entries with optional agency filter
+// Endpoint to fetch all travel entries with optional agency filter
 router.get('/', async (req, res) => {
-  const { agency } = req.query; // Allow filtering by agency name
+  const { agency } = req.query;
   try {
     const filter = agency ? { agency } : {};
     const entries = await TravelEntry.find(filter);
     res.status(200).json(entries);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching travel entries:', error);
+    res.status(500).json({ message: 'Failed to fetch travel entries' });
   }
 });
 
-// Daily sheet monitoring for cars used
+// Endpoint to get daily sheet monitoring for cars used
 router.get('/daily-sheet', async (req, res) => {
   try {
     const today = new Date();
@@ -61,12 +143,13 @@ router.get('/daily-sheet', async (req, res) => {
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
     const dailyEntries = await TravelEntry.find({
-      date: { $gte: startOfDay, $lt: endOfDay }
+      date: { $gte: startOfDay, $lt: endOfDay },
     });
 
     res.status(200).json({ date: new Date().toLocaleDateString(), dailyEntries });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching daily sheet:', error);
+    res.status(500).json({ message: 'Failed to fetch daily sheet' });
   }
 });
 

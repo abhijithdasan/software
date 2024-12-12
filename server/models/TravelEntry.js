@@ -22,9 +22,9 @@ const travelEntrySchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function(value) {
-        return /^(\d{2}):(\d{2})$/.test(value); // Regex to match time format "HH:MM"
+        return /^(\d{2}):(\d{2})$/.test(value); 
       },
-      message: props => `${props.value} is not a valid time format!` // Custom error message
+      message: props => `${props.value} is not a valid time format!` 
     }
   }, 
   startingKm: {

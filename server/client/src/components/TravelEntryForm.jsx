@@ -5,22 +5,17 @@ import { addTravelEntry } from '../utils/api.js';
 
 const travelAgencies = [
   "", "AB TRAVELS", "APJ ANAND", "ARUN RAJA", "CBS", "DAKSHINA MOORTHI", "DENEB", 
-  "ECO", "ENTREX", "ETS", "HTZ SHANKAR", "JESSY CABS", "KTC", "KVT", "LPM",
+  "ECO", "ENTREX","ETC", "ETS", "HTZ SHANKAR", "JESSY CABS", "KTC", "KVT", "LPM",
   "MANISHA", "NAZEER", "NEW TRAVELS", "ORCHID", "ORIX ARUL", "PANDIYA", 
   "PRAKASH TAJ", "RADHIKA", "RAGU", "RAJOO CABS", "RAYAPPAN", "RIDE INN", 
   "SAM TRAVELS", "SEENU", "SERENE", "SOORYA", "SREE-SAI KISHOR", "SRINIVASAN",
-  "SUKRA", "SUJITH", "VINEETH RAJ", "VISHNU TRAVELS", "VKB", "VOIT", 
+  "SUKRA", "SUJITH", "VINEETH RAJ","VENKATESH TRAVELS", "VISHNU TRAVELS", "VKB", "VOIT",
   "WLT JAKKU", "OTHER"
 ];
 
-const generateInvoiceNumber = (count) => {
-  const currentDate = new Date();
-  const year = currentDate.getFullYear();
-  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-  const day = String(currentDate.getDate()).padStart(2, '0');
-  return `INV-${year}${month}${day}0${count + 1}`;
+const formatInvoiceNumber = (number) => {
+  return `STINV${String(number).padStart(7, '0')}`;
 };
-
 
 
 const TravelEntryForm = () => {
@@ -42,49 +37,64 @@ const TravelEntryForm = () => {
     totalKm: '0',
     totalHours: '0.00',
     amount: '0',
-    invoiceNumber: generateInvoiceNumber(0),
+    invoiceNumber: '',
   });
 
   const [showAlert, setShowAlert] = useState(false);
-  const [invoiceCount, setInvoiceCount] = useState(0);
 
+  useEffect(() => {
+    const fetchCurrentInvoiceNumber = async () => {
+      try {
+        const response = await fetch('/api/invoice/current', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch invoice number');
+        }
+        
+        const data = await response.json();
+        setFormData(prev => ({
+          ...prev,
+          invoiceNumber: formatInvoiceNumber(data.currentNumber)
+        }));
+      } catch (error) {
+        console.error('Error fetching invoice number:', error);
+      }
+    };
+
+    fetchCurrentInvoiceNumber();
+  }, []);
+  
   const { totalKm, totalHours } = useMemo(() => {
-    const totalKm =
-      formData.closingKm && formData.startingKm
-        ? Math.max(0, Number(formData.closingKm) - Number(formData.startingKm))
-        : '';
-  
-    //const startTime = formData.startingTime ? new Date(`1970-01-01T${formData.startingTime}`) : null;
-    //const closeTime = formData.closingTime ? new Date(`1970-01-01T${formData.closingTime}`) : null;
-  
-    let totalHours = "00:00";
-    if (formData.startingTime && formData.closingTime) {
-      const startTime = new Date(`1970-01-01T${formData.startingTime}`);
-      const closeTime = new Date(`1970-01-01T${formData.closingTime}`);
-      const diffInMs = closeTime - startTime;
-  
-      const totalMinutes = Math.floor(diffInMs / (1000 * 60)); // Total difference in minutes
-      const hours = Math.floor(totalMinutes / 60); // Extract hours
-      const minutes = totalMinutes % 60; // Extract remaining minutes
-  
-      // Format to "HH:MM" by padding with zeros if needed
-      totalHours = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-    }
-  
-    return { totalKm, totalHours };
+    const kmDiff = Math.max(0, Number(formData.closingKm) - Number(formData.startingKm));
+    const [startHours, startMinutes] = formData.startingTime.split(':').map(Number);
+    const [endHours, endMinutes] = formData.closingTime.split(':').map(Number);
+
+    let diffMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
+    if (diffMinutes < 0) diffMinutes += 24 * 60;
+
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+
+    return {
+      totalKm: kmDiff,
+      totalHours: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
+    };
   }, [formData.startingKm, formData.closingKm, formData.startingTime, formData.closingTime]);
 
   useEffect(() => {
-    setFormData(prev => ({ ...prev, totalKm, totalHours }));
+    setFormData((prev) => ({ ...prev, totalKm, totalHours }));
   }, [totalKm, totalHours]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: name === 'startingKm' || name === 'closingKm' || name === 'tollFee' || name === 'parkingFee'
-        ? value.toString()
-        : value, 
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
 
@@ -96,7 +106,7 @@ const TravelEntryForm = () => {
     if (!confirmed) {
       return; // Stop the form submission if the user cancels
     }
-  
+
     console.log("Form submitted:", formData);
   
     // Validation: check for required fields
@@ -115,39 +125,69 @@ const TravelEntryForm = () => {
       return;
     }
   
-    // Prepare the data for submission
-    const entryData = {
-      ...formData,
-      invoiceNumber: generateInvoiceNumber(invoiceCount + 1),
-      date: new Date().toISOString().slice(0, 10),
-    };
+    
+    // Calculate total hours and total kilometers before submission
+    const totalKm = Math.max(0, Number(formData.closingKm) - Number(formData.startingKm));
+    const [startHours, startMinutes] = formData.startingTime.split(':').map(Number);
+    const [endHours, endMinutes] = formData.closingTime.split(':').map(Number);
   
+    let diffMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
+    if (diffMinutes < 0) diffMinutes += 24 * 60;
+  
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    const totalHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  
+    // Prepare the data for submission
     try {
+      // First, get a new invoice number
+      const invoiceResponse = await fetch('/api/invoice/next', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!invoiceResponse.ok) {
+        throw new Error('Failed to get next invoice number');
+      }
+
+      const { nextNumber } = await invoiceResponse.json();
+      const newInvoiceNumber = formatInvoiceNumber(nextNumber);
+
+      const entryData = {
+        ...formData,
+        invoiceNumber: newInvoiceNumber,
+        date: formData.date,
+        totalKm: totalKm.toString(),
+        totalHours
+      };
+
       const response = await addTravelEntry(entryData);
       console.log("Entry successfully added:", response);
-  
-      // Update invoice count
-      setInvoiceCount(prevCount => prevCount + 1);
+
+      
   
       // Reset form
       setFormData({
+        ...formData,
         guestName: '',
-        startingKm: '',
-        closingKm: '',
-        startingTime: '',
-        closingTime: '',
+        startingKm: '0',
+        closingKm: '0',
+        startingTime: '00:00',
+        closingTime: '00:00',
         guestNumber: '',
-        tollFee: '',
-        parkingFee: '',
+        tollFee: '0',
+        parkingFee: '0',
         vehicleName: '',
         vehicleNumber: '',
         driverName: '',
         reporting: '',
         date: new Date().toISOString().slice(0, 10),
         agency: '',
-        totalKm: '',
-        totalHours: '',
-        invoiceNumber: generateInvoiceNumber(invoiceCount + 1),
+        totalKm: '0',
+        totalHours: '00:00',
+        invoiceNumber: newInvoiceNumber,
       });
   
       setShowAlert(false); // Hide any previous alerts
@@ -207,22 +247,22 @@ const TravelEntryForm = () => {
 
           <div className="grid grid-cols-3 gap-4">
           <div className="form-group flex flex-col space-y-2">
-            <label className="font-bold text-gray-600">Vehicle Name:</label>
+            <label className="font-bold text-gray-600">Vehicle Number:</label>
             <input
               type="text"
-              name="vehicleName"
-              value={formData.vehicleName}
+              name="vehicleNumber"
+              value={formData.vehicleNumber}
               onChange={handleChange}
               required
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
           </div>
           <div className="form-group flex flex-col space-y-2">
-            <label className="font-bold text-gray-600">Vehicle Number:</label>
+            <label className="font-bold text-gray-600">Vehicle Name:</label>
             <input
               type="text"
-              name="vehicleNumber"
-              value={formData.vehicleNumber}
+              name="vehicleName"
+              value={formData.vehicleName}
               onChange={handleChange}
               required
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
@@ -278,39 +318,6 @@ const TravelEntryForm = () => {
 
         <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col space-y-2">
-            <label className="font-bold text-gray-600">Starting KM:</label>
-            <input
-              type="number"
-              name="startingKm"
-              value={formData.startingKm || ''}
-              onChange={handleChange}
-              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            />
-          </div>
-          <div className="flex flex-col space-y-2">
-            <label className="font-bold text-gray-600">Closing KM:</label>
-            <input
-              type="number"
-              name="closingKm"
-              value={formData.closingKm || ''}
-              onChange={handleChange}
-              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            />
-          </div>
-          <div className="flex flex-col space-y-2">
-            <label className="font-bold text-gray-600">Total KM:</label>
-            <input
-              type="text"
-              name="totalKm"
-              value={formData.totalKm}
-              readOnly
-              className="p-2 border border-gray-300 rounded-md bg-gray-50"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div className="flex flex-col space-y-2">
             <label className="font-bold text-gray-600">Starting Time:</label>
             <input
               type="time"
@@ -342,6 +349,39 @@ const TravelEntryForm = () => {
           </div>
         </div>
 
+        <div className="grid grid-cols-3 gap-4">
+          <div className="flex flex-col space-y-2">
+            <label className="font-bold text-gray-600">Starting KM:</label>
+            <input
+              type="number"
+              name="startingKm"
+              value={formData.startingKm || ''}
+              onChange={handleChange}
+              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            />
+          </div>
+          <div className="flex flex-col space-y-2">
+            <label className="font-bold text-gray-600">Closing KM:</label>
+            <input
+              type="number"
+              name="closingKm"
+              value={formData.closingKm || ''}
+              onChange={handleChange}
+              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            />
+          </div>
+          <div className="flex flex-col space-y-2">
+            <label className="font-bold text-gray-600">Total KM:</label>
+            <input
+              type="text"
+              name="totalKm"
+              value={formData.totalKm}
+              readOnly
+              className="p-2 border border-gray-300 rounded-md bg-gray-50"
+            />
+          </div>
+        </div>
+        
         <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col space-y-2">
             <label className="font-bold text-gray-600">Toll Fee:</label>

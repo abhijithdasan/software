@@ -57,14 +57,28 @@ export const login = async (credentials) => {
   }
 };
 
-// Add the fetchTravelEntries function
-export const fetchTravelEntries = async () => {
+export const fetchTravelEntries = async (agencyFilter, startDate, endDate) => {
   const token = localStorage.getItem('token');
   if (!token) {
     throw new Error('No authentication token found');
   }
 
-  const url = `${API_URL}/travels`;
+  let url = `${API_URL}/travels`;
+  const queryParams = [];
+
+  if (agencyFilter) {
+    queryParams.push(`agency=${encodeURIComponent(agencyFilter)}`);
+  }
+
+  if (startDate && endDate) {
+    queryParams.push(`startDate=${startDate.toISOString()}`);
+    queryParams.push(`endDate=${endDate.toISOString()}`);
+  }
+
+  if (queryParams.length > 0) {
+    url += `?${queryParams.join('&')}`;
+  }
+
   const options = {
     method: 'GET',
     headers: {
@@ -83,7 +97,6 @@ export const fetchTravelEntries = async () => {
   }
 };
 
-// Add the addTravelEntry function
 export const addTravelEntry = async (entryData) => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -110,7 +123,32 @@ export const addTravelEntry = async (entryData) => {
   }
 };
 
-// Add other travel-related API functions as needed
+export const fetchCurrentInvoice = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const url = `${API_URL}/invoice/current`; // Endpoint to fetch the current invoice number
+  const options = {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  };
+
+  try {
+    const response = await fetchWithErrorHandling(url, options);
+    return response.invoiceNumber; // Example: "STINV0000001"
+  } catch (error) {
+    console.error('Error fetching current invoice:', error);
+    throw error;
+  }
+};
+
+
 export const updateTravelEntry = async (id, entryData) => {
   const token = localStorage.getItem('token');
   if (!token) {

@@ -141,7 +141,7 @@ export const fetchCurrentInvoice = async () => {
 
   try {
     const response = await fetchWithErrorHandling(url, options);
-    return response.invoiceNumber; // Example: "STINV0000001"
+    return response.invoiceNumber;
   } catch (error) {
     console.error('Error fetching current invoice:', error);
     throw error;

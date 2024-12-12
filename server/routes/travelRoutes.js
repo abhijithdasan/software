@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Function to generate invoice number
 const generateInvoiceNumber = (counter) => {
-  return `STINV${counter.toString().padStart(7, '0')}`;
+  return `STINV2025${counter.toString().padStart(4, '0')}`;
 };
 
 // Get current invoice number

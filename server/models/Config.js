@@ -27,7 +27,7 @@ const ConfigSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  strict: false // Allows for flexible value types
+  strict: false
 });
 
 // Add pre-save middleware to update lastUpdated

@@ -14,7 +14,7 @@ const travelAgencies = [
 ];
 
 const formatInvoiceNumber = (number) => {
-  return `STINV${String(number).padStart(7, '0')}`;
+  return `STINV2025${String(number).padStart(4, '0')}`;
 };
 
 
@@ -68,6 +68,7 @@ const TravelEntryForm = () => {
 
     fetchCurrentInvoiceNumber();
   }, []);
+
   
   const { totalKm, totalHours } = useMemo(() => {
     const kmDiff = Math.max(0, Number(formData.closingKm) - Number(formData.startingKm));
@@ -166,8 +167,6 @@ const TravelEntryForm = () => {
       const response = await addTravelEntry(entryData);
       console.log("Entry successfully added:", response);
 
-      
-  
       // Reset form
       setFormData({
         ...formData,

@@ -191,7 +191,6 @@ const TravelEntryForm = () => {
         invoiceNumber: formatedInvoice,
       });
   
-      alert('Travel entry submitted successfully!');
     } catch (error) {
       console.error("Detailed Error submitting form:", error);
       alert(`Error submitting form: ${error.message}`);

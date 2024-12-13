@@ -38,7 +38,7 @@ router.post('/invoice/next', async (req, res) => {
       config = new Config({ key: 'invoiceCounter', value: 1 });
     }
     
-    const nextNumber = config.value + 1;
+    const nextNumber = config.value ;
     config.value = nextNumber;
     await config.save();
     

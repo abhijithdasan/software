@@ -13,7 +13,7 @@ const TravelEntriesPage = () => {
   const [isDateRangeValid, setIsDateRangeValid] = useState(true);
   const [sortConfig, setSortConfig] = useState({ 
     key: 'datetime', 
-    direction: 'desc'  // Default to showing most recent first
+    direction: 'asc'  // Default to showing most recent first
   });
 
   // Format date to DD/MM/YYYY

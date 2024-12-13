@@ -44,7 +44,7 @@ const TravelEntryForm = () => {
   useEffect(() => {
   const fetchCurrentInvoiceNumber = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/travels/invoice/current');
+      const response = await fetch('https://care-sixten.onrender.com/api/travels/invoice/current');
       
       if (!response.ok) {
         throw new Error('Failed to fetch invoice number');
@@ -128,7 +128,7 @@ const TravelEntryForm = () => {
   
     try {
       // Fetch the next invoice number when submitting
-      const invoiceResponse = await fetch('http://localhost:5000/api/travels/invoice/next', {
+      const invoiceResponse = await fetch('https://care-sixten.onrender.com/api/travels/invoice/next', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

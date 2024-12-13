@@ -8,12 +8,13 @@ const TravelEntriesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [agencyFilter, setAgencyFilter] = useState('');
+  const [dateRangeType, setDateRangeType] = useState('month');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [isDateRangeValid, setIsDateRangeValid] = useState(true);
   const [sortConfig, setSortConfig] = useState({ 
     key: 'datetime', 
-    direction: 'asc'  // Default to showing most recent first
+    direction: 'asc'
   });
 
   // Format date to DD/MM/YYYY
@@ -40,6 +41,34 @@ const TravelEntriesPage = () => {
     }
   };
 
+  // Set default date range based on selected type
+  // Set default date range based on selected type
+const setDefaultDateRange = (type) => {
+  const now = new Date();
+  let start, end;
+
+  switch (type) {
+    case 'day':
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      break;
+    case 'month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      break;
+    case 'year':
+      start = new Date(now.getFullYear(), 0, 1);
+      end = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+      break;
+    default:
+      start = null;
+      end = null;
+  }
+
+  setStartDate(start);
+  setEndDate(end);
+};
+
   // Sort entries function
   const sortEntries = (entriesArray) => {
     if (!Array.isArray(entriesArray)) return [];
@@ -55,6 +84,18 @@ const TravelEntriesPage = () => {
         : dateB.getTime() - dateA.getTime();
     });
   };
+
+  // Handle date range type change
+  const handleDateRangeTypeChange = (type) => {
+    setDateRangeType(type);
+    setDefaultDateRange(type);
+  };
+
+  // Initial setup
+  useEffect(() => {
+    // Set default to current month on first load
+    setDefaultDateRange('month');
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -86,14 +127,6 @@ const TravelEntriesPage = () => {
 
   const handleFilterChange = (e) => {
     setAgencyFilter(e.target.value.trim());
-  };
-
-  const handleStartDateChange = (date) => {
-    setStartDate(date);
-  };
-
-  const handleEndDateChange = (date) => {
-    setEndDate(date);
   };
 
   const handleSort = () => {
@@ -128,20 +161,54 @@ const TravelEntriesPage = () => {
       <h1 className="text-xl font-bold text-gray-800 text-center mb-6">TripSheet Entries</h1>
       
       <div className="sticky top-0 bg-white z-10 p-4 shadow-md w-full max-w-6xl rounded-lg mb-4">
+        {/* Date Range Type Selector */}
+        <div className="flex justify-center mb-4">
+          <div className="flex space-x-4">
+            {['day', 'month', 'year'].map((type) => (
+              <button
+                key={type}
+                onClick={() => handleDateRangeTypeChange(type)}
+                className={`px-4 py-2 rounded-md ${
+                  dateRangeType === type 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="flex flex-wrap gap-4">
           <DatePicker
             selected={startDate}
-            onChange={handleStartDateChange}
+            onChange={(date) => {
+              setStartDate(date);
+              setDateRangeType('custom');
+            }}
+            selectsStart
+            startDate={startDate}
+            endDate={endDate}
             dateFormat="dd/MM/yyyy"
             placeholderText="Start Date"
             className="p-2 border rounded flex-1 min-w-[200px]"
+            disabled={['day', 'month', 'year'].includes(dateRangeType)}
           />
           <DatePicker
             selected={endDate}
-            onChange={handleEndDateChange}
+            onChange={(date) => {
+              setEndDate(date);
+              setDateRangeType('custom');
+            }}
+            selectsEnd
+            startDate={startDate}
+            endDate={endDate}
+            minDate={startDate}
             dateFormat="dd/MM/yyyy"
             placeholderText="End Date"
             className="p-2 border rounded flex-1 min-w-[200px]"
+            disabled={['day', 'month', 'year'].includes(dateRangeType)}
           />
           <input
             type="text"

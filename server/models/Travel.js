@@ -7,9 +7,9 @@ const travelSchema = new mongoose.Schema({
   startingTime: { type: String, required: true },
   closingTime: { type: String, required: true },
   guestNumber: { type: String, required: true },
-  tollFee: { type: Number },
-  parkingFee: { type: Number },
-  amount: { type: Number, required: true }, 
+  tollFee: { type: Number, default: 0 },
+  parkingFee: { type: Number, default: 0 },
+  amount: { type: Number, default: 0 }, 
   vehicleName: { type: String, required: true },
   vehicleNumber: { type: String, required: true },
   driverName: { type: String, required: true },
@@ -27,7 +27,7 @@ const travelSchema = new mongoose.Schema({
       message: props => `${props.value} is not a valid time format!`
     }
   },
-  invoiceNumber: { type: String, required: true, unique: true },
+  invoiceNumber: { type: String, unique: true },
 });
 
 module.exports = mongoose.model('TravelEntry', travelSchema);

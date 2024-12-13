@@ -1,6 +1,6 @@
 // travel_software/src/utils/api.js
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 if (!API_URL) {
   throw new Error('VITE_API_URL environment variable is not set');
@@ -9,16 +9,25 @@ if (!API_URL) {
 const fetchWithErrorHandling = async (url, options) => {
   try {
     const response = await fetch(url, options);
-    const data = await response.json();
-
+    
     if (!response.ok) {
-      throw new Error(data.error || 'Request failed');
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
 
-    return data;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    }
+    
+    return await response.text();
   } catch (error) {
-    console.error(`Error with request to ${url}:`, error);
-    throw new Error(error.message || 'An error occurred during the request');
+    console.error(`Detailed error with request to ${url}:`, {
+      message: error.message,
+      url: url,
+      options: options
+    });
+    throw error;
   }
 };
 
@@ -107,21 +116,47 @@ export const addTravelEntry = async (entryData) => {
   const options = {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(entryData),
+    // Optional: Remove if not using cookies for session management
     credentials: 'include',
   };
 
   try {
-    const data = await fetchWithErrorHandling(url, options);
-    return data;
+    const response = await fetch(url, options);
+    const responseBody = await response.text();
+
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(responseBody);
+    } catch {
+      parsedResponse = { message: 'Invalid JSON response from server', raw: responseBody };
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Server error: ${response.status} - ${
+          parsedResponse.message || 'Unknown server error'
+        }. Full Response: ${JSON.stringify(parsedResponse)}`
+      );
+    }
+
+    return parsedResponse || { message: 'No response data provided by the server' };
   } catch (error) {
-    console.error('Error adding travel entry:', error);
+    if (import.meta.env.NODE_ENV !== 'production') {
+      console.error('Detailed Error adding travel entry:', {
+        message: error.message,
+        stack: error.stack,
+        entryData,
+      });
+    }
     throw error;
   }
 };
+
+
 
 export const fetchCurrentInvoice = async () => {
   const token = localStorage.getItem('token');
@@ -129,7 +164,7 @@ export const fetchCurrentInvoice = async () => {
     throw new Error('No authentication token found');
   }
 
-  const url = `${API_URL}/invoice/current`; // Endpoint to fetch the current invoice number
+  const url = `${API_URL}/invoice/current`; 
   const options = {
     method: 'GET',
     headers: {

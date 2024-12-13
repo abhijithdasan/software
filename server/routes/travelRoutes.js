@@ -58,13 +58,6 @@ router.post('/invoice/next', async (req, res) => {
 router.post('/', async (req, res) => {
   console.log('Received data:', req.body);
   try {
-    let config = await Config.findOne({ key: 'invoiceCounter' });
-
-    if (!config) {
-      config = new Config({ key: 'invoiceCounter', value: 1 });
-      await config.save();
-    }
-
     const {
       guestName,
       startingKm,
@@ -80,17 +73,25 @@ router.post('/', async (req, res) => {
       agency,
       totalKm,
       totalHours,
+      tollFee,
+      parkingFee,
+      amount,
     } = req.body;
 
     if (
-      !guestName || !startingKm || !closingKm || !startingTime || !closingTime || !guestNumber ||
-      !vehicleName || !vehicleNumber || !driverName || !reporting || !date || !agency
+      !guestName || !startingKm || !closingKm || !startingTime || !closingTime ||
+      !guestNumber || !vehicleName || !vehicleNumber || !driverName || !reporting ||
+      !date || !agency || totalKm == null || !totalHours || !amount
     ) {
       return res.status(400).json({ error: 'All required fields must be filled' });
     }
 
-    const currentCount = config.value;
-    const newInvoiceNumber = generateInvoiceNumber(currentCount);
+    const config = await Config.findOneAndUpdate(
+      { key: 'invoiceCounter' },
+      { $inc: { value: 1 } },
+      { new: true, upsert: true }
+    );
+    const invoiceNumber = generateInvoiceNumber(config.value);
 
     const newEntry = new TravelEntry({
       guestName,
@@ -107,20 +108,21 @@ router.post('/', async (req, res) => {
       agency,
       totalKm,
       totalHours,
-      invoiceNumber: newInvoiceNumber,
+      invoiceNumber,
+      tollFee,
+      parkingFee,
+      amount,
     });
 
     await newEntry.save();
 
-    config.value = currentCount + 1;
-    await config.save();
-
     res.status(201).json({ success: true, newEntry });
   } catch (error) {
-    console.error('Error adding travel entry:', error);
-    res.status(500).json({ error: 'Failed to create travel entry' });
+    console.error('Error adding travel entry:', error.message || error);
+    res.status(500).json({ error: 'Failed to create travel entry', details: error.message });
   }
 });
+
 
 // Endpoint to fetch all travel entries with optional agency filter
 router.get('/', async (req, res) => {

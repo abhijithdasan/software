@@ -128,7 +128,7 @@ const TravelEntryForm = () => {
   
     try {
       // Fetch the next invoice number when submitting
-      const invoiceResponse = await fetch('https://care-sixten.onrender.com/api/travels/invoice/next', {
+      const invoiceResponse = await fetch('http://localhost:5000/api/travels/invoice/next', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,16 +154,11 @@ const TravelEntryForm = () => {
         reporting: formData.reporting,
         agency: formData.agency,
         date: formData.date,
-        
-        // Optional fields with defaults
         driverName: formData.driverName || '',
         tollFee: formData.tollFee || '0',
         parkingFee: formData.parkingFee || '0',
         amount: formData.amount || '0',
-        
-        // IMPORTANT: Explicitly add the invoice number
         invoiceNumber: formData.invoiceNumber, 
-        
         totalKm: Math.max(0, Number(formData.closingKm) - Number(formData.startingKm)).toString(),
         totalHours: formData.totalHours || '00:00'
       };

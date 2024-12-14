@@ -11,8 +11,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'), // Ensures compatibility for aliasing
+      '@': path.resolve(__dirname, './src'), 
     },
+  },
+  define: {
+    'process.env.API_URL': JSON.stringify('https://care-sixten.onrender.com/api'),
   },
   build: {
     outDir: 'dist',

@@ -20,7 +20,7 @@ app.use(morgan('combined'));
 
 // CORS setup
 const corsOptions = {
-  origin: process.env.CLIENT_URL,
+  origin: ['https://sixtensheets.vercel.app', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

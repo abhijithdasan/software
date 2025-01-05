@@ -42,7 +42,6 @@ const TravelEntriesPage = () => {
   };
 
   // Set default date range based on selected type
-  // Set default date range based on selected type
 const setDefaultDateRange = (type) => {
   const now = new Date();
   let start, end;
@@ -134,6 +133,54 @@ const setDefaultDateRange = (type) => {
       key: 'datetime',
       direction: prevConfig.direction === 'asc' ? 'desc' : 'asc'
     }));
+  };
+
+  const handleExcelDownload = () => {
+    // Convert entries to CSV format
+    const headers = [
+      'SI No', 'Invoice No', 'Date', 'Travels', 'Vehicle No', 'Driver Name',
+      'Guest Name', 'Guest No', 'Reporting', 'Starting Time', 'Closing Time',
+      'Total Time', 'Starting KM', 'Closing KM', 'Total KM', 'Parking Fee',
+      'Toll Fee', 'Amount'
+    ];
+
+    const csvData = entries.map((entry, index) => [
+      index + 1,
+      entry.invoiceNumber,
+      formatDate(entry.date),
+      entry.agency,
+      entry.vehicleNumber,
+      entry.driverName,
+      entry.guestName,
+      entry.guestNumber,
+      entry.reporting,
+      entry.startingTime,
+      entry.closingTime,
+      `${entry.totalHours}Hrs`,
+      entry.startingKm,
+      entry.closingKm,
+      `${entry.totalKm}KM`,
+      `₹${Number(entry.parkingFee).toFixed(2)}`,
+      `₹${Number(entry.tollFee).toFixed(2)}`,
+      `₹${Number(entry.amount).toFixed(2)}`
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'travel_entries.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePdfDownload = () => {
+    window.print();
   };
 
   if (isLoading) {
@@ -245,62 +292,82 @@ const setDefaultDateRange = (type) => {
       ) : (
         <div className="w-full overflow-x-auto">
           <table className="w-full bg-white shadow-md rounded-lg">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="px-4 py-2 border w-12">SI No</th>
-                <th className="px-4 py-2 border w-24">Invoice No</th>
+            <thead >
+              <tr className="border-t bg-gray-200">
+                <th className="px-1 py-2 border w-1">SI No</th>
+                <th className="px-1 py-2 border w-1">Invoice No</th>
                 <th 
-                  className="px-4 py-2 border w-24 cursor-pointer hover:bg-gray-300"
+                  className="px-1 py-2 border w-4 cursor-pointer hover:bg-gray-300"
                   onClick={handleSort}
                 >
                   Date {sortConfig.direction === 'asc' ? '↑' : '↓'}
                 </th>
-                <th className="px-4 py-2 border w-32 text-center">Travels</th>
-                <th className="px-4 py-2 border w-32 text-center">Vehicle No</th>
-                <th className="px-4 py-2 border w-32 text-center">Driver Name</th>
-                <th className="px-4 py-2 border w-32 text-center">Guest Name</th>
-                <th className="px-4 py-2 border w-24 text-center">Guest No</th>
-                <th className="px-4 py-2 border w-32 text-center">Reporting</th>
-                <th className="px-4 py-2 border w-32 text-center">Starting Time</th>
-                <th className="px-4 py-2 border w-32 text-center">Closing Time</th>
-                <th className="px-4 py-2 border w-24 text-center">Total Time</th>
-                <th className="px-4 py-2 border w-24 text-center">Starting KM</th>
-                <th className="px-4 py-2 border w-24 text-center">Closing KM</th>
-                <th className="px-4 py-2 border w-24 text-center">Total KM</th>
-                <th className="px-4 py-2 border w-24 text-center">Parking Fee</th>
-                <th className="px-4 py-2 border w-24 text-center">Toll Fee</th>
-                <th className="px-4 py-2 border w-24 text-center">Amount</th>
+                <th className="px-1 py-2 border w-2 text-center">Travels</th>
+                <th className="px-1 py-2 border w-2 text-center">Vehicle No</th>
+                <th className="px-1 py-2 border w-2 text-center">Driver Name</th>
+                <th className="px-1 py-2 border w-2 text-center">Guest Name</th>
+                <th className="px-1 py-2 border w-4 text-center">Guest No</th>
+                <th className="px-2 py-2 border w-2 text-center">Reporting</th>
+                <th className="px-1 py-2 border w-2 text-center">Starting Time</th>
+                <th className="px-1 py-2 border w-2 text-center">Closing Time</th>
+                <th className="px-1 py-2 border w-4 text-center">Total Time</th>
+                <th className="px-1 py-2 border w-4 text-center">Starting KM</th>
+                <th className="px-1 py-2 border w-4 text-center">Closing KM</th>
+                <th className="px-1 py-2 border w-4 text-center">Total KM</th>
+                <th className="px-1 py-2 border w-4 text-center">Parking Fee</th>
+                <th className="px-1 py-2 border w-4 text-center">Toll Fee</th>
+                <th className="px-1 py-2 border w-4 text-center">Amount</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((entry, index) => (
                 <tr key={entry._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 border">{index + 1}</td>
-                  <td className="px-4 py-2 border">{entry.invoiceNumber}</td>
-                  <td className="px-4 py-2 border">
+                  <td className="px-1 py-2 border">{index + 1}</td>
+                  <td className="px-1 py-2 border">{entry.invoiceNumber}</td>
+                  <td className="px-1 py-2 border">
                     {formatDate(entry.date)}
                     <br />
                     <span className="text-sm text-gray-600"></span>
                   </td>
-                  <td className="px-4 py-2 border">{entry.agency}</td>
-                  <td className="px-4 py-2 border">{entry.vehicleNumber}</td>
-                  <td className="px-4 py-2 border">{entry.driverName}</td>
-                  <td className="px-4 py-2 border">{entry.guestName}</td>
-                  <td className="px-4 py-2 border">{entry.guestNumber}</td>
-                  <td className="px-4 py-2 border">{entry.reporting}</td>
-                  <td className="px-4 py-2 border">{entry.startingTime}</td>
-                  <td className="px-4 py-2 border">{entry.closingTime}</td>
-                  <td className="px-4 py-2 border">{entry.totalHours}Hrs</td>
-                  <td className="px-4 py-2 border">{entry.startingKm}</td>
-                  <td className="px-4 py-2 border">{entry.closingKm}</td>
-                  <td className="px-4 py-2 border">{entry.totalKm}KM</td>
-                  <td className="px-4 py-2 border">₹{Number(entry.parkingFee).toFixed(2)}</td>
-                  <td className="px-4 py-2 border">₹{Number(entry.tollFee).toFixed(2)}</td>
-                  <td className="px-4 py-2 border">₹{Number(entry.amount).toFixed(2)}</td>
+                  <td className="px-1 py-2 border">{entry.agency}</td>
+                  <td className="px-1 py-2 border">{entry.vehicleNumber}</td>
+                  <td className="px-1 py-2 border">{entry.driverName}</td>
+                  <td className="px-1 py-2 border">{entry.guestName}</td>
+                  <td className="px-1 py-2 border">{entry.guestNumber}</td>
+                  <td className="px-2 py-2 border">{entry.reporting}</td>
+                  <td className="px-1 py-2 border">{entry.startingTime}</td>
+                  <td className="px-1 py-2 border">{entry.closingTime}</td>
+                  <td className="px-1 py-2 border">{entry.totalHours}Hrs</td>
+                  <td className="px-1 py-2 border">{entry.startingKm}</td>
+                  <td className="px-1 py-2 border">{entry.closingKm}</td>
+                  <td className="px-1 py-2 border">{entry.totalKm}KM</td>
+                  <td className="px-1 py-2 border">₹{Number(entry.parkingFee).toFixed(2)}</td>
+                  <td className="px-1 py-2 border">₹{Number(entry.tollFee).toFixed(2)}</td>
+                  <td className="px-1 py-2 border">₹{Number(entry.amount).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <div className="flex justify-end gap-4 mt-6 mb-8">
+            <button
+              onClick={handleExcelDownload}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Download Excel
+            </button>
+            <button
+              onClick={handlePdfDownload}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Download PDF
+            </button>
+          </div>
         </div>
       )}
     </div>
